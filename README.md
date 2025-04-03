@@ -19,11 +19,6 @@ git clone https://github.com/vishmaycode/local-bin.git ~/.local/bin
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### necessary permissions
-
-```shell
-chmod +x ~/.local/bin/*
-```
 
 Scripts
 1. flameshot-save - is a screenshot tool flameshot's extension to save the files to ~/Pictures/Screenshots after clicking using Ctrl + PrintScr
