@@ -28,9 +28,15 @@ add_endpoint() {
 
     endpoint="$username@$domain"
 
-    # Check if alias or endpoint already exists
-    if grep -E "^$alias\|" "$CONFIG_FILE" || grep -E "\|$endpoint$" "$CONFIG_FILE"; then
-        echo "Alias or endpoint already exists!"
+    # Check if alias already exists
+    if grep -E "^$alias\|" "$CONFIG_FILE" > /dev/null; then
+        echo "Alias already exists! Please use a different alias."
+        return
+    fi
+
+    # Check if the exact username@domain already exists
+    if grep -E "\|$endpoint$" "$CONFIG_FILE" > /dev/null; then
+        echo "This exact SSH connection already exists!"
         return
     fi
 
