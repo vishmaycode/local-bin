@@ -7,10 +7,22 @@ here resides the local bin scripts for my linux systems
 mkdir -p ~/.local/bin
 ```
 
+### clone repository
+
+```shell
+git clone https://github.com/vishmaycode/local-bin.git ~/.local/bin
+```
+
 ### add local bin to path in .bashrc
 
 ```shell
 export PATH="$HOME/.local/bin:$PATH"
+```
+
+### necessary permissions
+
+```shell
+chmod +x ~/.local/bin/*
 ```
 
 Scripts
