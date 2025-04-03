@@ -1,0 +1,10 @@
+#!/bin/bash
+
+flameshot gui -c -p ~/Pictures/Screenshots
+sleep 2  # Ensure the screenshot is saved
+
+latest=$(ls -t ~/Pictures/Screenshots/*.png | head -1)
+
+if [[ -f "$latest" ]]; then
+    mv "$latest" ~/Pictures/Screenshots/"Flameshot from $(date +'%Y-%m-%d %H-%M-%S').png"
+fi
