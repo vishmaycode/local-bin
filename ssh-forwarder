@@ -1,0 +1,139 @@
+#!/bin/bash
+
+CONFIG_DIR="$HOME/.config/ssh-forwarder"
+CONFIG_FILE="$CONFIG_DIR/config"
+PID_DIR="$CONFIG_DIR/pids"
+
+mkdir -p "$CONFIG_DIR" "$PID_DIR"
+touch "$CONFIG_FILE"
+
+# Add new port forwarding entry
+add_forward() {
+    read -p "Enter alias: " alias
+    read -p "Enter local port to bind (e.g., 19392): " local_port
+    read -p "Enter remote host (e.g., 127.0.0.1): " remote_host
+    read -p "Enter remote port (e.g., 19392): " remote_port
+    read -p "Enter SSH endpoint (user@host): " ssh_endpoint
+
+    if grep -E "^$alias\|" "$CONFIG_FILE" > /dev/null; then
+        echo "❌ Alias already exists!"
+        return
+    fi
+
+    echo "$alias|$local_port|$remote_host|$remote_port|$ssh_endpoint" >> "$CONFIG_FILE"
+    echo "✅ Forwarding entry added!"
+}
+
+# Start SSH tunnel without interactive shell
+start_forward() {
+    entry=$(cat "$CONFIG_FILE" | fzf --prompt="Select a port forward to start: ")
+
+    if [ -z "$entry" ]; then
+        echo "No selection made."
+        return
+    fi
+
+    IFS="|" read -r alias local_port remote_host remote_port ssh_endpoint <<< "$entry"
+
+    echo "🔌 Starting port forward '$alias' on localhost:$local_port..."
+    ssh -fN -L "$local_port:$remote_host:$remote_port" "$ssh_endpoint"
+
+    pid=$(pgrep -f "ssh -fN -L $local_port:$remote_host:$remote_port $ssh_endpoint" | tail -n1)
+
+    if [ -n "$pid" ]; then
+        echo "$pid" > "$PID_DIR/$alias.pid"
+        echo "✅ Tunnel started with alias '$alias' (PID $pid)"
+    else
+        echo "❌ Failed to start tunnel."
+    fi
+}
+
+# List active tunnels
+list_active_tunnels() {
+    echo "🔍 Active SSH Tunnels:"
+    echo -e "Alias\t\tPID\tCommand"
+
+    for pid_file in "$PID_DIR"/*.pid; do
+        [ -e "$pid_file" ] || continue
+        alias=$(basename "$pid_file" .pid)
+        pid=$(cat "$pid_file")
+
+        if ps -p "$pid" > /dev/null; then
+            cmd=$(ps -p "$pid" -o args=)
+            printf "%-15s %-8s %s\n" "$alias" "$pid" "$cmd"
+        else
+            echo "⚠️ Tunnel '$alias' not running (cleaning up)"
+            rm "$pid_file"
+        fi
+    done
+}
+
+# Kill a tunnel by alias
+kill_active_tunnel() {
+    local alias=$(ls "$PID_DIR" 2>/dev/null | sed 's/\.pid$//' | fzf --prompt="Select alias to kill tunnel: ")
+
+    if [ -z "$alias" ]; then
+        echo "No selection made."
+        return
+    fi
+
+    local pid_file="$PID_DIR/$alias.pid"
+    if [ -f "$pid_file" ]; then
+        local pid=$(cat "$pid_file")
+        if kill "$pid" > /dev/null 2>&1; then
+            echo "❌ Killed tunnel '$alias' (PID $pid)"
+            rm "$pid_file"
+        else
+            echo "⚠️ Failed to kill or already stopped. Removing stale PID file."
+            rm "$pid_file"
+        fi
+    else
+        echo "❌ PID file not found for alias '$alias'"
+    fi
+}
+
+# Delete a saved config entry
+delete_forward_entry() {
+    selection=$(cat "$CONFIG_FILE" | fzf --prompt="Select a saved forward to delete: ")
+
+    if [ -z "$selection" ]; then
+        echo "No selection made."
+        return
+    fi
+
+    alias=$(echo "$selection" | cut -d'|' -f1)
+
+    # Remove from config
+    grep -v "^$alias|" "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+
+    # Remove PID file if it exists
+    if [ -f "$PID_DIR/$alias.pid" ]; then
+        rm "$PID_DIR/$alias.pid"
+    fi
+
+    echo "🗑️ Deleted saved forward: $alias"
+}
+
+# Infinite loop for menu
+while true; do
+    echo
+    echo "=== 🔐 SSH Port Forward Manager ==="
+    echo "1) Add New Port Forward"
+    echo "2) Start Port Forward"
+    echo "3) List Active Tunnels"
+    echo "4) Kill Tunnel by Alias"
+    echo "5) Delete a Saved Port Forward"
+    echo "6) Exit"
+    read -p "Select an option: " choice
+
+    case "$choice" in
+        1) add_forward ;;
+        2) start_forward ;;
+        3) list_active_tunnels ;;
+        4) kill_active_tunnel ;;
+        5) delete_forward_entry ;;
+        6) echo "👋 Exiting..."; exit 0 ;;
+        *) echo "❌ Invalid option!" ;;
+    esac
+done
+
