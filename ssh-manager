@@ -1,5 +1,4 @@
 #!/bin/bash
-
 CONFIG_DIR="$HOME/.config/ssh-manager"
 CONFIG_FILE="$CONFIG_DIR/config"
 
@@ -9,13 +8,7 @@ touch "$CONFIG_FILE"
 
 # Function to connect to an SSH endpoint
 connect_endpoint() {
-    endpoint=$(cat "$CONFIG_FILE" | fzf --prompt="Select an alias or endpoint to connect: " | cut -d'|' -f2)
-
-    if [ -z "$endpoint" ]; then
-        echo "No endpoint selected."
-        return
-    fi
-
+    endpoint=$(echo "$1" | cut -d'|' -f2)
     echo "Connecting to $endpoint..."
     ssh "$endpoint"
 }
@@ -25,25 +18,18 @@ add_endpoint() {
     read -p "Enter username: " username
     read -p "Enter domain: " domain
     read -p "Enter an alias for this connection: " alias
-
     endpoint="$username@$domain"
-
-    # Check if alias already exists
-    if grep -E "^$alias\|" "$CONFIG_FILE" > /dev/null; then
-        echo "Alias already exists! Please use a different alias."
+    
+    # Check if alias or endpoint already exists
+    if grep -E "^$alias\|" "$CONFIG_FILE" || grep -E "\|$endpoint$" "$CONFIG_FILE"; then
+        echo "Alias or endpoint already exists!"
         return
     fi
-
-    # Check if the exact username@domain already exists
-    if grep -E "\|$endpoint$" "$CONFIG_FILE" > /dev/null; then
-        echo "This exact SSH connection already exists!"
-        return
-    fi
-
+    
     # Add the endpoint to config
     echo "$alias|$endpoint" >> "$CONFIG_FILE"
     echo "Endpoint added successfully!"
-
+    
     # Ask if user wants to connect immediately
     read -p "Do you want to connect now? (y/n): " connect_now
     if [[ "$connect_now" =~ ^[Yy]$ ]]; then
@@ -57,28 +43,52 @@ add_endpoint() {
 # Function to delete an SSH endpoint
 delete_endpoint() {
     selection=$(cat "$CONFIG_FILE" | fzf --prompt="Select an alias or endpoint to delete: ")
-
     if [ -z "$selection" ]; then
         echo "No endpoint selected."
         return
     fi
-
-    sed -i "/^$selection$/d" "$CONFIG_FILE"
+    
+    # Extract the alias part for deletion
+    alias=$(echo "$selection" | cut -d'|' -f1)
+    sed -i "/^$alias\|/d" "$CONFIG_FILE"
     echo "Endpoint deleted: $selection"
 }
 
-# Menu options
-echo "SSH Manager"
-echo "1) Connect to an SSH Endpoint"
-echo "2) Add a New SSH Endpoint"
-echo "3) Delete an SSH Endpoint"
-echo "4) Exit"
-read -p "Select an option: " choice
+# Create a file with existing connections plus option to add/delete
+create_selection_list() {
+    temp_file=$(mktemp)
+    
+    # Add connections from config file
+    if [ -s "$CONFIG_FILE" ]; then
+        cat "$CONFIG_FILE" > "$temp_file"
+    fi
+    
+    # Add special options
+    echo "[+] Add new endpoint" >> "$temp_file"
+    echo "[-] Delete an endpoint" >> "$temp_file"
+    
+    echo "$temp_file"
+}
 
-case "$choice" in
-    1) connect_endpoint ;;
-    2) add_endpoint ;;
-    3) delete_endpoint ;;
-    4) exit 0 ;;
-    *) echo "Invalid option!" ;;
-esac
+# Main logic
+main() {
+    temp_list=$(create_selection_list)
+    selection=$(cat "$temp_list" | fzf --prompt="Select a connection or action: ")
+    rm "$temp_list"
+    
+    if [ -z "$selection" ]; then
+        echo "No selection made."
+        exit 0
+    fi
+    
+    if [ "$selection" = "[+] Add new endpoint" ]; then
+        add_endpoint
+    elif [ "$selection" = "[-] Delete an endpoint" ]; then
+        delete_endpoint
+    else
+        connect_endpoint "$selection"
+    fi
+}
+
+# Run the program
+main
