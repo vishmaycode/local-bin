@@ -9,32 +9,42 @@ touch "$CONFIG_FILE"
 # Function to connect to an SSH endpoint
 connect_endpoint() {
     endpoint=$(echo "$1" | cut -d'|' -f2)
-    echo "Connecting to $endpoint..."
-    ssh "$endpoint"
+    port=$(echo "$1" | cut -d'|' -f3)
+    echo "Connecting to $endpoint${port:+ on port $port}..."
+    if [ -n "$port" ]; then
+        ssh -p "$port" "$endpoint"
+    else
+        ssh "$endpoint"  # Default port 22
+    fi
 }
 
 # Function to add a new SSH endpoint
 add_endpoint() {
     read -p "Enter username: " username
     read -p "Enter domain: " domain
+    read -p "Enter port (leave blank for default 22): " port
     read -p "Enter an alias for this connection: " alias
     endpoint="$username@$domain"
     
     # Check if alias or endpoint already exists
-    if grep -E "^$alias\|" "$CONFIG_FILE" || grep -E "\|$endpoint$" "$CONFIG_FILE"; then
+    if grep -E "^$alias\|" "$CONFIG_FILE" || grep -E "\|$endpoint\|" "$CONFIG_FILE"; then
         echo "Alias or endpoint already exists!"
         return
     fi
     
     # Add the endpoint to config
-    echo "$alias|$endpoint" >> "$CONFIG_FILE"
+    echo "$alias|$endpoint|$port" >> "$CONFIG_FILE"
     echo "Endpoint added successfully!"
     
     # Ask if user wants to connect immediately
     read -p "Do you want to connect now? (y/n): " connect_now
     if [[ "$connect_now" =~ ^[Yy]$ ]]; then
-        echo "Connecting to $endpoint..."
-        ssh "$endpoint"
+        echo "Connecting to $endpoint${port:+ on port $port}..."
+        if [ -n "$port" ]; then
+            ssh -p "$port" "$endpoint"
+        else
+            ssh "$endpoint"
+        fi
     else
         echo "🔹 You can connect later using the SSH manager."
     fi
@@ -60,7 +70,11 @@ create_selection_list() {
     
     # Add connections from config file
     if [ -s "$CONFIG_FILE" ]; then
-        cat "$CONFIG_FILE" > "$temp_file"
+        while IFS='|' read -r alias endpoint port; do
+            if [ -n "$alias" ]; then
+                echo "$alias|$endpoint|${port:-22}" >> "$temp_file"
+            fi
+        done < "$CONFIG_FILE"
     fi
     
     # Add special options
