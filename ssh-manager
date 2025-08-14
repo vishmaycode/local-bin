@@ -23,11 +23,24 @@ fi
 connect_endpoint() {
     local endpoint=$(echo "$1" | cut -d'|' -f2)
     local port=$(echo "$1" | cut -d'|' -f3)
+    local password=$(echo "$1" | cut -d'|' -f4)
     echo "Connecting to $endpoint${port:+ on port $port}..."
-    if [ -n "$port" ]; then
-        ssh -p "$port" "$endpoint"
+    if [ -n "$password" ]; then
+        if ! command -v sshpass >/dev/null; then
+            echo "Error: 'sshpass' is required for password authentication. Please install it or leave password blank."
+            return
+        fi
+        if [ -n "$port" ]; then
+            sshpass -p "$password" ssh -p "$port" "$endpoint"
+        else
+            sshpass -p "$password" ssh "$endpoint"
+        fi
     else
-        ssh "$endpoint"
+        if [ -n "$port" ]; then
+            ssh -p "$port" "$endpoint"
+        else
+            ssh "$endpoint"
+        fi
     fi
 }
 
@@ -37,6 +50,8 @@ add_endpoint() {
     read -p "Enter domain: " domain
     read -p "Enter port (leave blank for default 22): " port
     read -p "Enter an alias for this connection: " alias
+    read -s -p "Enter password (leave blank to prompt on connect) (IMPORTANT - THIS IS NOT SECURE): " password
+    echo
 
     if [[ -z "$username" || -z "$domain" || -z "$alias" ]]; then
         echo "Username, domain, and alias are required."
@@ -55,14 +70,14 @@ add_endpoint() {
         return
     fi
 
-    echo "$alias|$endpoint|$port" >> "$CONFIG_FILE"
+    echo "$alias|$endpoint|$port|$password" >> "$CONFIG_FILE"
     echo "Endpoint added successfully!"
 
     read -p "Do you want to connect now? (y/n): " connect_now
     if [[ "$connect_now" =~ ^[Yy]$ ]]; then
-        connect_endpoint "$alias|$endpoint|$port"
+        connect_endpoint "$alias|$endpoint|$port|$password"
     else
-        echo "🔹 You can connect later using the SSH manager."
+        echo "You can connect later using the SSH manager."
     fi
 }
 
@@ -93,8 +108,8 @@ create_selection_list() {
 
     # Add connections from config file
     if [ -s "$CONFIG_FILE" ]; then
-        while IFS='|' read -r alias endpoint port; do
-            echo "$alias|$endpoint|${port:-22}" >> "$temp_file"
+        while IFS='|' read -r alias endpoint port password; do
+            echo "$alias|$endpoint|${port:-22}|$password" >> "$temp_file"
         done < "$CONFIG_FILE"
     fi
 
