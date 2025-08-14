@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+s="${TMUX_SESSION_NAME:?missing}"
+
+if [ "$(tmux list-panes -t "$s:" | wc -l)" -gt 1 ]; then
+  exit 0
+fi
+
+root=$(tmux display-message -p -t "$s:" '#{pane_id}')
+p2=$(tmux split-window -h -t "$root" -P -F '#{pane_id}')
+tmux select-layout -t "$s:" even-horizontal
+
+tmux send-keys -t "$root" 'ssh user@server1' C-m
+tmux send-keys -t "$p2"   'ssh user@server2' C-m
