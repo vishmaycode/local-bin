@@ -25,5 +25,5 @@ export PATH="$HOME/.local/bin:$PATH"
 3. ssh-forwarder: Manages SSH port forwarding, storing them in ~/.config/ssh-forwarder/config for easy access.
 4. smartmux: A tmux session manager inspired by tmux-sessionizer by ThePrimeagen [https://github.com/theprimeagen/tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer). It adds support for custom tmux layouts: just add a .tmux-layout bash script in your project folder, and smartmux will load it on session start. Example .tmux-layout included in the repo.
 
-## Licensing
+### Licensing
 - All code in this repository is licensed under the Apache License 2.0 (see LICENSE file).
