@@ -7,6 +7,19 @@ CONFIG_FILE="$CONFIG_DIR/config"
 mkdir -p "$CONFIG_DIR"
 touch "$CONFIG_FILE"
 
+# Banner to display in fzf
+BANNER_HEADER=$'
+██╗   ██╗██╗███████╗██╗  ██╗ ██████╗ ██████╗ ██████╗ ███████╗███████╗
+██║   ██║██║██╔════╝██║  ██║██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝
+██║   ██║██║███████╗███████║██║     ██║   ██║██║  ██║█████╗  ███████╗
+╚██╗ ██╔╝██║╚════██║██╔══██║██║     ██║   ██║██║  ██║██╔══╝  ╚════██║
+ ╚████╔╝ ██║███████║██║  ██║╚██████╗╚██████╔╝██████╔╝███████╗███████║
+  ╚═══╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝
+
+VishCodes - https://vishcodes.com
+GitHub    - https://github.com/vishmaycode/local-bin
+'
+
 # Clean up temporary files
 cleanup() {
     [[ -f "$temp_list" ]] && rm -f "$temp_list"
@@ -84,7 +97,7 @@ add_endpoint() {
 # Function to delete an SSH endpoint
 delete_endpoint() {
     local selection
-    selection=$(fzf --prompt="Select an alias to delete: " < "$CONFIG_FILE")
+    selection=$(fzf --header="$BANNER_HEADER" --prompt="Select an alias to delete: " < "$CONFIG_FILE")
     if [ -z "$selection" ]; then
         echo "No endpoint selected."
         return
@@ -124,7 +137,7 @@ create_selection_list() {
 main() {
     temp_list=$(create_selection_list)
     local selection
-    selection=$(fzf --prompt="Select a connection or action: " < "$temp_list")
+    selection=$(fzf --header="$BANNER_HEADER" --prompt="Select a connection or action: " < "$temp_list")
 
     if [ -z "$selection" ]; then
         echo "No selection made."
