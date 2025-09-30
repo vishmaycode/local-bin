@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+# Copyright 2025 Vishmay Karbotkar
+# Licensed under the Apache License, Version 2.0. See LICENSE file in the repository root.
+# https://vishcodes.com
+# https://github.com/vishmaycode/local-bin
+# Inspired by tmux-sessionizer by ThePrimeagen[](https://github.com/ThePrimeagen/tmux-sessionizer).
+# Core ideas for session selection and switching; extended with .tmux-layout support.
+# Original code reimplemented—no direct copies.
+
 set -euo pipefail
 
 switch_to() {

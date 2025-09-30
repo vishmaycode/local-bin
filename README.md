@@ -13,16 +13,17 @@ mkdir -p ~/.local/bin
 git clone https://github.com/vishmaycode/local-bin.git ~/.local/bin
 ```
 
-### add local bin to path in .bashrc
+### add local bin to path in .bashrc/.zshrc
 
 ```shell
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
+### Scripts
+1. flameshot-save: A screenshot tool extension for Flameshot to save files to ~/Pictures/Screenshots and also clipboard using Ctrl + PrintScr (set manually).
+2. ssh-manager: Manages SSH endpoints, storing them in ~/.config/ssh-manager/config for easy access to multiple SSH connections.
+3. ssh-forwarder: Manages SSH port forwarding, storing them in ~/.config/ssh-forwarder/config for easy access.
+4. smartmux: A tmux session manager inspired by tmux-sessionizer by ThePrimeagen [https://github.com/theprimeagen/tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer). It adds support for custom tmux layouts: just add a .tmux-layout bash script in your project folder, and smartmux will load it on session start. Example .tmux-layout included in the repo.
 
-Scripts
-1. flameshot-save - is a screenshot tool flameshot's extension to save the files to ~/Pictures/Screenshots after clicking using Ctrl + PrintScr
-2. ssh-manager - is a ssh manager which saves the endpoints in ~/.config/ssh-manager/config to easy the process of remembering multiple ssh endpoints
-3. tmux-sessionizer - is a fork of tmux sessionizer by The Primeagen [https://github.com/theprimeagen/tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer), tailerd for my directory structure
-4. smartmux - is a upgraded version of tmux-sessionizer with the ability to have a tmux layout in each of the folder it will initiate from.
-just add a .tmux-layout into the folder and the next time you open that folder using smartmux, it will load the layout. (example of the .tmux-layout is included)
+## Licensing
+- All code in this repository is licensed under the Apache License 2.0 (see LICENSE file).

@@ -1,0 +1,9 @@
+local-bin
+Copyright 2025 Vishmay Karbotkar
+
+This product includes original scripts developed by Vishmay Karbotkar, licensed under the Apache License, Version 2.0. See the LICENSE file for details.
+
+Attributions:
+- The `smartmux` script is inspired by tmux-sessionizer by ThePrimeagen[](https://github.com/ThePrimeagen/tmux-sessionizer).
+  - Inspiration for core tmux session management and directory selection functionality.
+  - Extended with original features, such as per-project `.tmux-layout` loading.

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Copyright 2025 Vishmay Karbotkar
+# Licensed under the Apache License, Version 2.0. See LICENSE file in the repository root.
+# https://vishcodes.com
+# https://github.com/vishmaycode/local-bin
+
 flameshot gui -c -p ~/Pictures/Screenshots
 sleep 2  # Ensure the screenshot is saved
 

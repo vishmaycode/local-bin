@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Copyright 2025 Vishmay Karbotkar
+# Licensed under the Apache License, Version 2.0. See LICENSE file in the repository root.
+# https://vishcodes.com
+# https://github.com/vishmaycode/local-bin
+# Speacial thanks to abhishek mandal [https://abhishek-mandal.netlify.app/]
+
 CONFIG_DIR="$HOME/.config/ssh-forwarder"
 CONFIG_FILE="$CONFIG_DIR/config"
 PID_DIR="$CONFIG_DIR/pids"
@@ -12,7 +18,7 @@ touch "$CONFIG_FILE"
 validate_number() {
     local input=$1
     if ! [[ "$input" =~ ^[0-9]+$ ]]; then
-        echo "❌ Error: Input must be a number"
+        echo "Error: Input must be a number"
         return 1
     fi
     return 0
@@ -24,7 +30,7 @@ add_forward() {
 
     # Validate alias format
     if [[ -z "$alias" || "$alias" =~ [^a-zA-Z0-9_-] ]]; then
-        echo "❌ Invalid alias. Use only letters, numbers, underscore and dash."
+        echo "Invalid alias. Use only letters, numbers, underscore and dash."
         return 1
     fi
 
@@ -42,13 +48,13 @@ add_forward() {
 
     # Check if alias already exists
     if grep -E "^$alias\|" "$CONFIG_FILE" >/dev/null; then
-        echo "❌ Alias already exists!"
+        echo "Alias already exists!"
         return 1
     fi
 
     # Append to config file
     echo "$alias|$local_port|$remote_host|$remote_port|$ssh_endpoint" >>"$CONFIG_FILE"
-    echo "✅ Forwarding entry added!"
+    echo "Forwarding entry added!"
 }
 
 # Start SSH tunnel without interactive shell
@@ -70,7 +76,7 @@ start_forward() {
     if [ -f "$PID_DIR/$alias.pid" ]; then
         pid=$(cat "$PID_DIR/$alias.pid")
         if ps -p "$pid" >/dev/null 2>&1; then
-            echo "⚠️ Tunnel with alias '$alias' is already running (PID $pid)"
+            echo "Tunnel with alias '$alias' is already running (PID $pid)"
             return 1
         else
             # Clean up stale PID file
@@ -80,7 +86,7 @@ start_forward() {
 
     # Check if local port is already in use
     if netstat -tuln | grep -q ":$local_port "; then
-        echo "❌ Local port $local_port is already in use!"
+        echo "Local port $local_port is already in use!"
         return 1
     fi
 
@@ -91,7 +97,7 @@ start_forward() {
     ssh_status=$?
 
     if [ $ssh_status -ne 0 ]; then
-        echo "❌ SSH command failed with exit code $ssh_status"
+        echo "SSH command failed with exit code $ssh_status"
         return 1
     fi
 
@@ -101,15 +107,15 @@ start_forward() {
 
     if [ -n "$pid" ]; then
         echo "$pid" >"$PID_DIR/$alias.pid"
-        echo "✅ Tunnel started with alias '$alias' (PID $pid)"
+        echo "Tunnel started with alias '$alias' (PID $pid)"
     else
-        echo "❌ Failed to find the tunnel process."
+        echo "Failed to find the tunnel process."
     fi
 }
 
 # List active tunnels
 list_active_tunnels() {
-    echo "🔍 Active SSH Tunnels:"
+    echo "Active SSH Tunnels:"
     echo -e "Alias\t\tPID\tLocal Port\tRemote Host:Port\tSSH Endpoint"
     echo -e "-----\t\t---\t----------\t---------------\t------------"
 
@@ -139,7 +145,7 @@ list_active_tunnels() {
                 found_tunnels=1
             fi
         else
-            echo "⚠️ Tunnel '$alias' not running (cleaning up)"
+            echo "Tunnel '$alias' not running (cleaning up)"
             rm "$pid_file"
         fi
     done
@@ -172,20 +178,20 @@ kill_active_tunnel() {
 
             if ps -p "$pid" >/dev/null 2>&1; then
                 if kill "$pid" >/dev/null 2>&1; then
-                    echo "✅ Killed tunnel '$alias' (PID $pid)"
+                    echo "Killed tunnel '$alias' (PID $pid)"
                     killed_count=$((killed_count + 1))
                 else
-                    echo "⚠️ Failed to kill '$alias', trying SIGKILL..."
+                    echo "Failed to kill '$alias', trying SIGKILL..."
                     kill -9 "$pid" >/dev/null 2>&1
                     if [ $? -eq 0 ]; then
-                        echo "💥 Forcefully killed tunnel '$alias' (PID $pid)"
+                        echo "Forcefully killed tunnel '$alias' (PID $pid)"
                         killed_count=$((killed_count + 1))
                     else
-                        echo "❌ Failed to kill process for '$alias'"
+                        echo "Failed to kill process for '$alias'"
                     fi
                 fi
             else
-                echo "⚠️ Process for '$alias' not running (cleaning up)"
+                echo "Process for '$alias' not running (cleaning up)"
             fi
 
             # Remove the PID file regardless
@@ -193,7 +199,7 @@ kill_active_tunnel() {
         done
 
         if [ $killed_count -gt 0 ]; then
-            echo "🔥 Killed all $killed_count active tunnels."
+            echo "Killed all $killed_count active tunnels."
         else
             echo "No active tunnels were killed."
         fi
@@ -207,25 +213,25 @@ kill_active_tunnel() {
             local pid=$(cat "$pid_file")
             if ps -p "$pid" >/dev/null 2>&1; then
                 if kill "$pid" >/dev/null 2>&1; then
-                    echo "❌ Killed tunnel '$input_alias' (PID $pid)"
+                    echo "Killed tunnel '$input_alias' (PID $pid)"
                     rm "$pid_file"
                 else
                     echo "⚠️ Failed to kill. Trying with SIGKILL..."
                     kill -9 "$pid" >/dev/null 2>&1
                     if [ $? -eq 0 ]; then
-                        echo "💥 Forcefully killed tunnel '$input_alias' (PID $pid)"
+                        echo "Forcefully killed tunnel '$input_alias' (PID $pid)"
                         rm "$pid_file"
                     else
-                        echo "❌ Failed to kill process. Removing stale PID file."
+                        echo "Failed to kill process. Removing stale PID file."
                         rm "$pid_file"
                     fi
                 fi
             else
-                echo "⚠️ Process not running. Removing stale PID file."
+                echo "Process not running. Removing stale PID file."
                 rm "$pid_file"
             fi
         else
-            echo "❌ No tunnel found with alias '$input_alias'"
+            echo "No tunnel found with alias '$input_alias'"
         fi
         return 0
     fi
@@ -250,25 +256,25 @@ kill_active_tunnel() {
         local pid=$(cat "$pid_file")
         if ps -p "$pid" >/dev/null 2>&1; then
             if kill "$pid" >/dev/null 2>&1; then
-                echo "❌ Killed tunnel '$alias' (PID $pid)"
+                echo "Killed tunnel '$alias' (PID $pid)"
                 rm "$pid_file"
             else
-                echo "⚠️ Failed to kill process. Trying with SIGKILL..."
+                echo "Failed to kill process. Trying with SIGKILL..."
                 kill -9 "$pid" >/dev/null 2>&1
                 if [ $? -eq 0 ]; then
-                    echo "💥 Forcefully killed tunnel '$alias' (PID $pid)"
+                    echo "Forcefully killed tunnel '$alias' (PID $pid)"
                     rm "$pid_file"
                 else
-                    echo "❌ Failed to kill process. Removing stale PID file."
+                    echo "Failed to kill process. Removing stale PID file."
                     rm "$pid_file"
                 fi
             fi
         else
-            echo "⚠️ Process not running. Removing stale PID file."
+            echo "Process not running. Removing stale PID file."
             rm "$pid_file"
         fi
     else
-        echo "❌ PID file not found for alias '$alias'"
+        echo "PID file not found for alias '$alias'"
     fi
 }
 
@@ -276,7 +282,7 @@ kill_active_tunnel() {
 delete_forward_entry() {
     # Check if config file exists and is not empty
     if [ ! -s "$CONFIG_FILE" ]; then
-        echo "❌ No saved configurations found."
+        echo "No saved configurations found."
         return 1
     fi
 
@@ -291,7 +297,7 @@ delete_forward_entry() {
 
     # Verify the entry exists before attempting to delete
     if ! grep -q "^$alias|" "$CONFIG_FILE"; then
-        echo "❌ Entry for alias '$alias' not found in config"
+        echo "Entry for alias '$alias' not found in config"
         return 1
     fi
 
@@ -307,26 +313,26 @@ delete_forward_entry() {
         # Check if process is still running
         pid=$(cat "$PID_DIR/$alias.pid")
         if ps -p "$pid" >/dev/null 2>&1; then
-            echo "⚠️ Tunnel is still active. Killing process..."
+            echo "Tunnel is still active. Killing process..."
             kill "$pid" >/dev/null 2>&1
         fi
         rm "$PID_DIR/$alias.pid"
     fi
 
-    echo "🗑️ Deleted saved forward: $alias"
+    echo "Deleted saved forward: $alias"
 }
 
 # Main menu
 while true; do
     echo
-    echo "=== 🔐 SSH Port Forward Manager ==="
-    echo "1) ➕ Add New Port Forward"
-    echo "2) 🚀 Start Port Forward"
-    echo "3) 📋 List Active Tunnels"
-    echo "4) ❌ Kill Tunnel by Alias"
-    echo "5) 🗑️ Delete a Saved Port Forward"
-    echo "6) 👋 Exit"
-    read -p "🔸 Select an option: " choice
+    echo "=== SSH Port Forward Manager ==="
+    echo "1) Add New Port Forward"
+    echo "2) Start Port Forward"
+    echo "3) List Active Tunnels"
+    echo "4) Kill Tunnel by Alias"
+    echo "5) Delete a Saved Port Forward"
+    echo "6) Exit"
+    read -p "Select an option: " choice
 
     case "$choice" in
     1) add_forward ;;
@@ -335,9 +341,9 @@ while true; do
     4) kill_active_tunnel ;;
     5) delete_forward_entry ;;
     6)
-        echo "👋 Exiting..."
+        echo "Exiting..."
         exit 0
         ;;
-    *) echo "❌ Invalid option!" ;;
+    *) echo "Invalid option!" ;;
     esac
 done
