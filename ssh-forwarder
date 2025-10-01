@@ -6,6 +6,19 @@
 # https://github.com/vishmaycode/local-bin
 # Special thanks to abhishek mandal [https://abhishek-mandal.netlify.app/] for his invaluable contributions to this script.
 
+read -r -d '' BANNER_HEADER << 'EOF'
+██╗   ██╗██╗███████╗██╗  ██╗ ██████╗ ██████╗ ██████╗ ███████╗███████╗
+██║   ██║██║██╔════╝██║  ██║██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝
+██║   ██║██║███████╗███████║██║     ██║   ██║██║  ██║█████╗  ███████╗
+╚██╗ ██╔╝██║╚════██║██╔══██║██║     ██║   ██║██║  ██║██╔══╝  ╚════██║
+ ╚████╔╝ ██║███████║██║  ██║╚██████╗╚██████╔╝██████╔╝███████╗███████║
+  ╚═══╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝
+
+VishCodes - https://vishcodes.com
+GitHub    - https://github.com/vishmaycode/local-bin
+Abhishek  - https://abhishek-mandal.netlify.app
+EOF
+
 CONFIG_DIR="$HOME/.config/ssh-forwarder"
 CONFIG_FILE="$CONFIG_DIR/config"
 PID_DIR="$CONFIG_DIR/pids"
@@ -216,7 +229,7 @@ kill_active_tunnel() {
                     echo "Killed tunnel '$input_alias' (PID $pid)"
                     rm "$pid_file"
                 else
-                    echo "⚠️ Failed to kill. Trying with SIGKILL..."
+                    echo "Failed to kill. Trying with SIGKILL..."
                     kill -9 "$pid" >/dev/null 2>&1
                     if [ $? -eq 0 ]; then
                         echo "Forcefully killed tunnel '$input_alias' (PID $pid)"
@@ -325,6 +338,9 @@ delete_forward_entry() {
 # Main menu
 while true; do
     echo
+    echo "$BANNER_HEADER"
+    echo
+    echo
     echo "=== SSH Port Forward Manager ==="
     echo "1) Add New Port Forward"
     echo "2) Start Port Forward"
@@ -332,6 +348,7 @@ while true; do
     echo "4) Kill Tunnel by Alias"
     echo "5) Delete a Saved Port Forward"
     echo "6) Exit"
+    echo
     read -p "Select an option: " choice
 
     case "$choice" in
