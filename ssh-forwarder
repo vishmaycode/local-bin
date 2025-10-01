@@ -4,7 +4,7 @@
 # Licensed under the Apache License, Version 2.0. See LICENSE file in the repository root.
 # https://vishcodes.com
 # https://github.com/vishmaycode/local-bin
-# Speacial thanks to abhishek mandal [https://abhishek-mandal.netlify.app/]
+# Special thanks to abhishek mandal [https://abhishek-mandal.netlify.app/] for his invaluable contributions to this script.
 
 CONFIG_DIR="$HOME/.config/ssh-forwarder"
 CONFIG_FILE="$CONFIG_DIR/config"
