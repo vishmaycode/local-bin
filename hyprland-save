@@ -1,0 +1,17 @@
+#!/bin/bash
+
+DIR="$HOME/Pictures/Screenshots"
+mkdir -p "$DIR"
+
+FILE="$DIR/shot_$(date +%Y%m%d_%H%M%S).png"
+
+grim -g "$(slurp)" - |
+  tee "$FILE" |
+  wl-copy
+
+# Notification
+notify-send \
+  -i camera-photo \
+  -u low \
+  "Screenshot" \
+  "Region saved & copied to clipboard"
