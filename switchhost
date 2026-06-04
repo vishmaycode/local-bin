@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Copyright 2025 Vishmay Karbotkar
+# Licensed under the Apache License, Version 2.0. See LICENSE file in the repository root.
+# https://vishcodes.com
+# https://github.com/vishmaycode/local-bin
+
+# Banner to display
+BANNER_HEADER=$'
+██╗   ██╗██╗███████╗██╗  ██╗ ██████╗ ██████╗ ██████╗ ███████╗███████╗
+██║   ██║██║██╔════╝██║  ██║██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝
+██║   ██║██║███████╗███████║██║     ██║   ██║██║  ██║█████╗  ███████╗
+╚██╗ ██╔╝██║╚════██║██╔══██║██║     ██║   ██║██║  ██║██╔══╝  ╚════██║
+ ╚████╔╝ ██║███████║██║  ██║╚██████╗╚██████╔╝██████╔╝███████╗███████║
+  ╚═══╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝╚══════╝
+
+VishCodes - https://vishcodes.com
+GitHub    - https://github.com/vishmaycode/local-bin
+'
+
+echo "$BANNER_HEADER"
+
+CONFIG_DIR="$HOME/.config/switchhost"
+HOME_HOSTS="$CONFIG_DIR/hosts-home.txt"
+OUTSIDE_HOSTS="$CONFIG_DIR/hosts-outside.txt"
+
+usage() {
+    echo "Usage: switchhost [-h | -o]"
+    echo "  -h    Switch to home hosts file"
+    echo "  -o    Switch to outside hosts file"
+    exit 1
+}
+
+if [ $# -eq 0 ]; then
+   usage 
+fi
+
+case "$1" in
+    -h)
+        if [ ! -f "$HOME_HOSTS" ]; then
+            echo "Error: $HOME_HOSTS not found"
+            exit 1
+        fi
+
+        sudo cp "$HOME_HOSTS" /etc/hosts
+        echo "Switched to home hosts configuration."
+        ;;
+    -o)
+        if [ ! -f "$OUTSIDE_HOSTS" ]; then
+            echo "Error: $OUTSIDE_HOSTS not found"
+            exit 1
+        fi
+
+        sudo cp "$OUTSIDE_HOSTS" /etc/hosts
+        echo "Switched to outside hosts configuration."
+        ;;
+    *)
+        usage
+        ;;
+esac
